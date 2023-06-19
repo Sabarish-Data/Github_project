@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Repository Search</title>
+  <!-- Include Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #000;
+      font-family: Monaco, monospace;
+      color: #fff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #resultsContainer {
+      margin-top: 30px;
+    }
+
+    .repository-card {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 40px; /* Increased margin */
+      background-color: #222;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+
+    .repository-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .repository-card h4 {
+      margin-bottom: 20px; /* Increased margin */
+      color: #fff;
+    }
+
+    .repository-card p {
+      margin-bottom: 20px; /* Increased margin */
+      color: #fff;
+    }
+
+    .repository-link {
+      display: none; /* Hide the repository link */
+    }
+
+    .loading {
+      text-align: center;
+      margin-top: 30px;
+      font-style: italic;
+      color: #999;
+      animation: blink 1s infinite;
+    }
+
+    .repository-search {
+      text-align: center;
+      font-weight: bold;
+      text-transform: capitalize;
+      font-size: 80px;
+      color: #fff;
+      animation: breathe 3s infinite;
+    }
+
+    .repository-search:hover {
+      animation: strobe-hover 1s infinite;
+    }
+
+    .center-align {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .form-control {
+      width: 400px;
+      font-size: 18px;
+    }
+
+    .input-label {
+      text-align: left;
+      margin-left: 15px;
+    }
+
+    /* New Visual Effects */
+
+    .repository-card:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .repository-card:hover:before {
+      opacity: 1;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes breathe {
+      0% {
+        color: #fff;
+      }
+      50% {
+        color: #fff;
+      }
+      100% {
+        color: #fff;
+      }
+    }
+
+    @keyframes strobe-hover {
+      0% {
+        color: #fff;
+      }
+       /* ... */
+    }
+
+    /* Custom Search Button Style */
+    .custom-search-button {
+      background-color: #f44336;
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .custom-search-button:hover {
+      background-color: #2196f3;
+    }
+
+    /* Floating Text Animation */
+    @keyframes float {
+      0% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    .repository-search {
+      animation: float 3s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="center-align">
+      <h1 class="repository-search">REPO VALIDATOR</h1>
+      <div class="form-group">
+        <label for="urlInput" class="input-label">ENTER THE GITHUB URL</label>
+        <input type="text" class="form-control" id="urlInput" placeholder="Enter URL">
+      </div>
+      <button type="button" class="custom-search-button" onclick="searchRepositories()">SEARCH</button>
+      <hr>
+      <div id="resultsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Include Bootstrap JS and jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  
+  <script>
+    function searchRepositories() {
+      var url = document.getElementById("urlInput").value;
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "/search/?repoUrl=" + encodeURIComponent(url), true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var repositories = JSON.parse(xhr.responseText);
+
+          var resultsContainer = document.getElementById("resultsContainer");
+          resultsContainer.innerHTML = "";
+
+          for (var i = 0; i < repositories.length; i++) {
+            var repository = repositories[i];
+            var repositoryHtml = '<div class="repository-card">';
+            repositoryHtml += '<h4>Repository: ' + repository.name + '</h4>';
+            repositoryHtml += '<p>' + repository.description + '</p>';
+            repositoryHtml += '</div>';
+            resultsContainer.innerHTML += repositoryHtml;
+          }
+        }
+      };
+      xhr.send();
+
+      var resultsContainer = document.getElementById("resultsContainer");
+      resultsContainer.innerHTML = '<div class="loading">Loading...</div>';
+    }
+
+    // Trigger search on Enter key press
+    var input = document.getElementById("urlInput");
+    input.addEventListener("keyup", function(event) {
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        searchRepositories();
+      }
+    });
+  </script>
+</body>
+</html>
